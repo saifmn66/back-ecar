@@ -1,0 +1,25 @@
+{
+  "name": "back-ecar",
+  "version": "1.0.0",
+  "description": "back end for flutter app ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saifmn66/back-ecar.git"
+  },
+  "author": "mensi saif",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/saifmn66/back-ecar/issues"
+  },
+  "homepage": "https://github.com/saifmn66/back-ecar#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^5.1.0",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.2"
+  }
+}
