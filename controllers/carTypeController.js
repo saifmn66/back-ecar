@@ -9,7 +9,7 @@ exports.createCarType = async (req, res) => {
     if (!brand || !model || !image || !batteryCapacity || !KWparKM) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
+    
     const newCarType = new CarType({
       brand,
       model,

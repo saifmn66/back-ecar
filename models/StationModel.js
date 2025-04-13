@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const user = require("./userModel");
 
 const stationSchema = new Schema(
   {
