@@ -1,6 +1,33 @@
 const Appointment = require("../models/appointmentModel");
 const Machine = require("../models/machineModel");
 
+const checkMachineAvailability = async (machineId, date, startPeriod, endPeriod) => {
+  // Check if machine exists
+  const machine = await Machine.findById(machineId);
+  if (!machine) {
+    throw new Error("Machine not found");
+  }
+
+  // Check for overlapping appointments
+  const existingAppointment = await Appointment.findOne({
+    Machine: machineId,
+    AppointmentDate: new Date(date),
+    $or: [
+      { StartPeriod: { $lte: endPeriod }, EndPeriod: { $gte: startPeriod } }
+    ]
+  });
+
+  if (existingAppointment) {
+    return {
+      available: false,
+      message: "Machine is already booked for the selected periods",
+      conflictingAppointment: existingAppointment
+    };
+  }
+
+  return { available: true, message: "Machine is available for booking" };
+};
+
 // Check if a machine is available for given periods
 exports.checkAvailability = async (req, res) => {
   try {
@@ -11,33 +38,15 @@ exports.checkAvailability = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if machine exists
-    const machine = await Machine.findById(machineId);
-    if (!machine) {
-      return res.status(404).json({ message: "Machine not found" });
+    try {
+      const availability = await checkMachineAvailability(machineId, date, startPeriod, endPeriod);
+      res.status(200).json(availability);
+    } catch (error) {
+      if (error.message === "Machine not found") {
+        return res.status(404).json({ message: error.message });
+      }
+      throw error;
     }
-
-    // Check for overlapping appointments
-    const existingAppointment = await Appointment.findOne({
-      Machine: machineId,
-      AppointmentDate: new Date(date),
-      $or: [
-        { StartPeriod: { $lte: endPeriod }, EndPeriod: { $gte: startPeriod } }
-      ]
-    });
-
-    if (existingAppointment) {
-      return res.status(409).json({ 
-        available: false,
-        message: "Machine is already booked for the selected periods",
-        conflictingAppointment: existingAppointment
-      });
-    }
-
-    res.status(200).json({
-      available: true,
-      message: "Machine is available for booking"
-    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -50,15 +59,10 @@ exports.addNewAppointment = async (req, res) => {
     const { stationId, machineId, userId, date, startPeriod, endPeriod } = req.body;
 
     // First check availability
-    const availabilityResponse = await exports.checkAvailability({
-      body: { machineId, date, startPeriod, endPeriod }
-    }, { 
-      json: (data) => data,
-      status: () => ({ json: (data) => data }) 
-    });
+    const availability = await checkMachineAvailability(machineId, date, startPeriod, endPeriod);
 
-    if (!availabilityResponse.available) {
-      return res.status(409).json(availabilityResponse);
+    if (!availability.available) {
+      return res.status(409).json(availability);
     }
 
     // Create new appointment
@@ -85,3 +89,45 @@ exports.addNewAppointment = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.checkAvailablePlaces = async (req, res) => {
+    try {
+      const { machineId, date } = req.body;
+  
+      // Validate input
+      if (!machineId || !date) {
+        return res.status(400).json({ message: "Machine ID and date are required" });
+      }
+  
+      // Check if machine exists
+      const machine = await Machine.findById(machineId);
+      if (!machine) {
+        return res.status(404).json({ message: "Machine not found" });
+      }
+  
+      // Get all appointments for this machine/date
+      const appointments = await Appointment.find({
+        Machine: machineId,
+        AppointmentDate: new Date(date)
+      });
+  
+      // Initialize all periods as available (true)
+      const availability = Array(6).fill(true);
+  
+      // Mark booked periods as false
+      appointments.forEach(app => {
+        for (let i = app.StartPeriod - 1; i < app.EndPeriod; i++) {
+          if (i >= 0 && i < 6) availability[i] = false;
+        }
+      });
+  
+      res.status(200).json({
+        availability, // Example: [true, true, false, false, true, false]
+        message: `Availability for machine ${machineId} on ${date}`
+      });
+  
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };

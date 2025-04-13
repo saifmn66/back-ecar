@@ -4,6 +4,7 @@ const carTypeRoutes = require('./routers/carTypeRouter');
 const stationRoutes = require('./routers/stationRouter');
 const userRoutes = require('./routers/userRouter');
 const appointmentRoutes = require('./routers/appointmentRouter');
+const machineRoutes = require('./routers/machineRouter');
 
 const app = express();
 const port = 3000;
@@ -16,6 +17,7 @@ app.use('/cartype', carTypeRoutes);
 app.use('/station', stationRoutes);
 app.use('/user', userRoutes);
 app.use('/appointment', appointmentRoutes);
+app.use('/machines', machineRoutes);
 
 // MongoDB connection URI
 const uri = "mongodb+srv://patosaif33:OHiDmi2yzEJ9L01F@ecars.jio9237.mongodb.net/ecars?retryWrites=true&w=majority";
