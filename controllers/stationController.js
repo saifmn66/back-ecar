@@ -1,5 +1,6 @@
 const Station = require('../models/StationModel');
 
+// create a new station
 exports.createStation = async (req, res) => {
   try {
     const { Name, Position, City, Town } = req.body;
@@ -34,4 +35,71 @@ exports.createStation = async (req, res) => {
   }
 };
 
+//get all Stations 
+exports.getAllStations = async (req, res) => {
+  try {
+    const Stations = await Station.find().sort({ views: -1 });
+    if (!Stations) {
+      return res.status(400).json({ message: "No Stations found" });
+    }
+    res.status(200).json(Stations);
+  } catch (error) {
+    console.error("Error Fetching stations:", error);
+    res.status(500).json({ message: "Error Fetching stations", error: error.message });
+  }
+};
 
+//get Stations by town
+exports.getStationsByTown = async (req, res) => {
+  try {
+    const { town } = req.params;
+
+    const Stations = await Station.find({ Town: town }).sort({ views: -1 });
+
+    if (!Stations || Stations.length === 0) {
+      return res.status(404).json({ message: "No Stations found in the specified town" });
+    }
+
+    res.status(200).json(Stations);
+  } catch (error) {
+    console.error("Error Fetching stations:", error);
+    res.status(500).json({ message: "Error Fetching stations", error: error.message });
+  }
+};
+
+//get Stations by city
+exports.getStationsByCity = async (req, res) => {
+  try {
+    const { town } = req.params;
+
+    const Stations = await Station.find({ City: town }).sort({ views: -1 });
+
+    if (!Stations || Stations.length === 0) {
+      return res.status(404).json({ message: "No Stations found in the specified city" });
+    }
+
+    res.status(200).json(Stations);
+  } catch (error) {
+    console.error("Error Fetching stations:", error);
+    res.status(500).json({ message: "Error Fetching stations", error: error.message });
+  }
+};
+
+
+//get Stations by city and town
+exports.getStationsByCity = async (req, res) => {
+  try {
+    const { city , town } = req.params;
+
+    const Stations = await Station.find({ City: city  , Town: town}).sort({ views: -1 });
+
+    if (!Stations || Stations.length === 0) {
+      return res.status(404).json({ message: "No Stations found in the specified city" });
+    }
+
+    res.status(200).json(Stations);
+  } catch (error) {
+    console.error("Error Fetching stations:", error);
+    res.status(500).json({ message: "Error Fetching stations", error: error.message });
+  }
+};
