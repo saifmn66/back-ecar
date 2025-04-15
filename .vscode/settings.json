@@ -1,4 +1,13 @@
 {
     "workbench.settings.openDefaultKeybindings": true,
-    "github.copilot.nextEditSuggestions.enabled": false
+    "github.copilot.nextEditSuggestions.enabled": false,
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false
+    },
+    "cSpell.words": [
+        "saifecars"
+    ]
 }

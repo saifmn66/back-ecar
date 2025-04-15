@@ -7,7 +7,8 @@ const appointmentRoutes = require('./routers/appointmentRouter');
 const machineRoutes = require('./routers/machineRouter');
 
 const app = express();
-const port = 3000;
+const dotenv = require('dotenv')
+dotenv.config()
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
@@ -20,12 +21,15 @@ app.use('/appointment', appointmentRoutes);
 app.use('/machines', machineRoutes);
 
 // MongoDB connection URI
-const uri = "mongodb+srv://patosaif33:OHiDmi2yzEJ9L01F@ecars.jio9237.mongodb.net/ecars?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI;
 
 // Connect to MongoDB using Mongoose
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB via Mongoose!"))
   .catch((error) => console.error("Error connecting to MongoDB:", error));
+
+// Define the port from the .env file or use a default value
+const port = process.env.PORT;
 
 // Start the server
 app.listen(port, () => {

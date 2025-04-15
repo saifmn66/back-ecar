@@ -1,5 +1,7 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const { generateTokens } = require('../middleware/jwtMiddleware');
 
 exports.createUser = async (req, res) => {
     try {
@@ -22,7 +24,7 @@ exports.createUser = async (req, res) => {
         }
 
         // Hash password
-        const saltRounds = 12;
+        const saltRounds = parseInt(process.env.SALT, 10); 
         const hashedPassword = await bcrypt.hash(Passwd, saltRounds);
 
         // Create new user
@@ -30,9 +32,9 @@ exports.createUser = async (req, res) => {
             PhoneNumber,
             Email,
             UserName,
-            Car: Car || [], // Default to an empty array if no cars are provided
-            Passwd: hashedPassword, // Store the hashed password
-            Role: Role || 'User', // Default role is 'User'
+            Car: Car || [], 
+            Passwd: hashedPassword, 
+            Role: Role || 'User', 
         });
 
         await newUser.save();
@@ -52,5 +54,33 @@ exports.createUser = async (req, res) => {
             message: "Server error while creating user", 
             error: error.message 
         });
+    }
+};
+
+//user login
+exports.loginUser = async (req, res) => {
+    try {
+        const { Email, Passwd } = req.body;
+        if(!Email || !Passwd) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+        if (!Email.includes('@')) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+        const user = await User.findOne({ Email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const isPasswordValid = await bcrypt.compare(Passwd, user.Passwd);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid password" });
+        }
+
+        // Generate access token for the authenticated user
+        const { accessToken } = generateTokens(user);
+
+        res.json({ accessToken });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };

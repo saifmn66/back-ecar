@@ -90,7 +90,7 @@ exports.addNewAppointment = async (req, res) => {
   }
 };
 
-
+// to fetch free places in front
 exports.checkAvailablePlaces = async (req, res) => {
     try {
       const { machineId, date } = req.body;
@@ -131,4 +131,64 @@ exports.checkAvailablePlaces = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
+
+  // cancel an appointment
+  exports.cancelAppointment = async (req , res) => {
+    try{
+      const {idAppointment} = req.params;
+      const canceledAppointment = await Appointment.findByIdAndDelete(idAppointment);
+      if(!canceledAppointment){
+        return res.status(404).json({message: "cant find the appointment"});
+      }
+      res.status(200).json({message: "appointment canceled successfully"});
+
+
+    }catch(error){
+      res.status(500).json({message: "Error deleting appointment", error});
+    };
+  }
+
+
+  // get all appointments by user
+  exports.getAllAppointmentsByUser = async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      const appointments = await Appointment.find({ User: userId, AppointmentDate: { $gt: new Date() } }).populate("Machine").populate("Station");
+
+      if (!appointments || appointments.length === 0) {
+        return res.status(404).json({ message: "No appointments found for this user" });
+      }
+
+      res.status(200).json(appointments);
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
   
+  // get all appointments by machine for admin
+  exports.getAllAppointmentsByMachine = async (req, res) => {
+    try {
+      const { machineId } = req.params;
+
+      if (!machineId) {
+        return res.status(400).json({ message: "Machine ID is required" });
+      }
+
+      const appointments = await Appointment.find({ Machine: machineId, AppointmentDate: { $gt: new Date() } }).populate("User").populate("Station");
+
+      if (!appointments || appointments.length === 0) {
+        return res.status(404).json({ message: "No appointments found for this machine" });
+      }
+
+      res.status(200).json(appointments);
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
