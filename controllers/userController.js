@@ -43,8 +43,13 @@ exports.createUser = async (req, res) => {
         const userResponse = newUser.toObject();
         delete userResponse.Passwd;
 
+        // Generate access token for the new user
+        const { accessToken } = generateTokens(userResponse);
+
+        // Send a single response with the access token and user details
         res.status(201).json({
             message: "User created successfully",
+            accessToken,
             user: userResponse,
         });
 
